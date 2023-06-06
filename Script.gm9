@@ -1,0 +1,200 @@
+###################################################################################################################################
+# GodMode9 script to work with the USG-FIRM-WRITER cart in order to test for undumped firmwares.
+# Created: 2023/06/05
+# Last edited: 2023/06/06
+# Written by rmc
+#
+#                    _______
+#                   | ===== |       
+#                   |      <|        
+#                   |>      |       
+#                   |_______|       
+#                  | ** **** |
+#                  |   \ /   |
+#                  |    X    |
+#                  |   / \   |
+#                  |  _____  |
+#                  |_|| ||||_|
+#                    \ \|||
+#                     \|||/
+#                      \||
+#                      |||
+#                      |||
+#    Why do people     |||
+#    put ASCII art     |||
+#    in source code?   |||
+#                      |||
+#                      |||
+#                      /|\
+#                     |||||
+#                    /|/ \\
+#                   ///   \\
+#     ____ _________|||___||__________ ____
+#    |____|___________________________|__*_|
+#    |                                     |
+#    |    _____________________            |
+#    |   |  USG-FIRM-WRITER v2 |           |
+#    |   |_____________________|           |
+#    |                                     |
+#    |                                     |
+#    |            O           O .          |
+#    |_____________________________________|
+#
+###################################################################################################################################
+
+# Create work directory
+mkdir $[GM9OUT]/UTL-FIRM-WRITER
+
+# Dump files individually, can be set as 'FW', 'ALL', or 'NONE'. The 'ALL' flag will dump the WiFi configuration as a seperate file.
+set DUMP_ALL ALL
+
+###################################################################################################################################
+# Main menu for all your menuing needs.
+###################################################################################################################################
+
+@sub_Menu
+set PREVIEW_MODE "USG-FIRM-WRITER Script v0.3\n"
+labelsel -o -s "Select an option." nmopt_*
+goto sub_Menu
+
+###################################################################################################################################
+# Dump firmware and compare to known dumps.
+###################################################################################################################################
+
+@sub_Dump_Firmware
+set PREVIEW_MODE  "Dumping firmware..."
+if	ask "Proceed with checker?\nThis will overwrite any old dumps, unless 'DUMP_ALL'\nwas set as 'NONE'."
+else
+    goto sub_Exit_Script
+end
+find C:/*.sav SAVEPATH
+cp -w $[SAVEPATH] $[GM9OUT]/UTL-FIRM-WRITER/CURRENT.bin             # Backup firmware for editing
+set FW_DUMP $[GM9OUT]/UTL-FIRM-WRITER/CURRENT.bin                   # Store firmware path
+
+# Get MAC
+fget $[FW_DUMP]@3C:06 MAC
+
+if chk $[DUMP_ALL] FW
+    cp -w $[FW_DUMP] $[GM9OUT]/UTL-FIRM-WRITER/FW_$[MAC].bin
+elif chk $[DUMP_ALL] ALL
+    cp -w $[FW_DUMP] $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_FIRMWARE.bin
+                                                                                # Backup WiFi configuration and save to dummy file
+    fdummy $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin 1D6
+    cp $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
+    rm $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin
+                                                                                # Have to write the data in 100 byte blocks to due fget size error
+    fget $[FW_DUMP]@2A:64 WIFI_CONFIG                                           # Backup data
+    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@00 $[WIFI_CONFIG]     # Store data
+    fget $[FW_DUMP]@8E:64 WIFI_CONFIG                                           # Backup data
+    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@64 $[WIFI_CONFIG]     # Store data
+    fget $[FW_DUMP]@F2:64 WIFI_CONFIG                                           # Backup data
+    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]     # Store data
+    fget $[FW_DUMP]@156:64 WIFI_CONFIG                                          # Backup data
+    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]    # Store data
+    fget $[FW_DUMP]@1BA:64 WIFI_CONFIG                                          # Backup data
+    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]    # Store data
+    fget $[FW_DUMP]@200:64 WIFI_CONFIG                                          # Backup data
+    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@1D6 $[WIFI_CONFIG]    # Store data
+end
+# Remember 1D6
+
+set PREVIEW_MODE  "Getting build info..."
+fget $[FW_DUMP]@18:01 FW_HH_STRING
+fget $[FW_DUMP]@19:01 FW_MM_STRING
+fget $[FW_DUMP]@1A:01 FW_DD_STRING
+fget $[FW_DUMP]@1B:01 FW_MO_STRING
+fget $[FW_DUMP]@1C:01 FW_YY_STRING
+fget $[FW_DUMP]@1D:01 FW_REGION_STRING
+fget $[FW_DUMP]@18:06 FW_FULL_STRING
+
+set PREVIEW_MODE  "Englishifying build info..."
+if chk $[FW_REGION_STRING] FF
+    set FW_BUILD_REGION "NTR/Worldwide"
+elif chk $[FW_REGION_STRING] 20
+    set FW_BUILD_REGION "USG/Worldwide"
+elif chk $[FW_REGION_STRING] 35
+    set FW_BUILD_REGION "USG/Korea"
+elif chk $[FW_REGION_STRING] 43
+    set FW_BUILD_REGION "NTR/China"
+elif chk $[FW_REGION_STRING] 63
+    set FW_BUILD_REGION "USG/China"
+elif chk $[FW_REGION_STRING] 01
+    set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+elif chk $[FW_REGION_STRING] 00
+    set FW_BUILD_REGION "NTR/Prototype"
+end
+
+if chk $[FW_MO_STRING] 01
+    set FW_BUILD_MONTH "January"
+elif chk $[FW_MO_STRING] 02
+    set FW_BUILD_MONTH "February"
+elif chk $[FW_MO_STRING] 03
+    set FW_BUILD_MONTH "March"
+elif chk $[FW_MO_STRING] 04
+    set FW_BUILD_MONTH "April"
+elif chk $[FW_MO_STRING] 05
+    set FW_BUILD_MONTH "May"
+elif chk $[FW_MO_STRING] 06
+    set FW_BUILD_MONTH "June"
+elif chk $[FW_MO_STRING] 07
+    set FW_BUILD_MONTH "July"
+elif chk $[FW_MO_STRING] 08
+    set FW_BUILD_MONTH "August"
+elif chk $[FW_MO_STRING] 09
+    set FW_BUILD_MONTH "September"
+elif chk $[FW_MO_STRING] 10
+    set FW_BUILD_MONTH "October"
+elif chk $[FW_MO_STRING] 11
+    set FW_BUILD_MONTH "November"
+elif chk $[FW_MO_STRING] 12
+    set FW_BUILD_MONTH "December"
+elif set FW_BUILD_MONTH "UNKNOWN"
+end
+
+# Display build info
+set PREVIEW_MODE  "Build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
+
+
+if chk $[FW_FULL_STRING] 0711051004FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 5109261104FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 5108280205FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 4814060605FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 152109060543
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 161630110520
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 1514071205FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 192026010601
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 332105020620
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 191108030620
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 351506260463
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 302106091135
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 000000000000
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk 1 1
+    echo "NEW FIRMWARE: Please send a firmware dump to:\n'ianskinner519@gmail.com'.\n($[FW_DUMP])"
+    goto sub_Exit_Script
+end
+
+if ask "No new firmwares found.\nInsert new board and try again?"
+    goto sub_Dump_Firmware
+else
+    goto sub_Exit_Script
+end
+
+###################################################################################################################################
+# End script... but why would you want to do that?
+###################################################################################################################################
+
+@sub_Exit_Script
+echo "Exiting script, have a nice day!"

@@ -162,7 +162,7 @@ elif chk $[FW_FULL_STRING] 152109060543
     echo "Already dumped... :(\nBetter luck next time?"
 elif chk $[FW_FULL_STRING] 161630110520
     echo "Already dumped... :(\nBetter luck next time?"
-elif chk $[FW_FULL_STRING] 1514071205FF
+elif chk $[FW_FULL_STRING] 4514071205FF
     echo "Already dumped... :(\nBetter luck next time?"
 elif chk $[FW_FULL_STRING] 192026010601
     echo "Already dumped... :(\nBetter luck next time?"
@@ -199,69 +199,149 @@ set PREVIEW_MODE  "Flash firmware backup."
 if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
     if  ask "Use external dumps? If no then your own dumps will be used.\nNote: for external dumps, place firmware backups in:\n$[GM9OUT]/UTL-FIRM-WRITER/External/"
         if	filesel "Select firmware backup" $[GM9OUT]/UTL-FIRM-WRITER/External/* FIRMWARE_FLASH
-
-            # Create temporary copy of firmware and import config to that before flashing.
-            cp -w $[FIRMWARE_FLASH] $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin
-            find C:/*.sav SAVEPATH
-                                                                                # Have to write the data in 100 byte blocks to due fget size error
-            fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                           # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG]     # Store data
-            fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                           # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG]     # Store data
-            fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                           # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG]     # Store data
-            fget $[SAVEPATH]@156:64 WIFI_CONFIG                                          # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG]    # Store data
-            fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                          # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG]    # Store data
-
-            # Add rest of config here later on
-
-            find C:/*.sav SAVEPATH
-            cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
-
-            rm $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
-            echo "Firmware flashed okay!"
-
-        else
-            echo "Operation cancelled."
-            goto sub_Flash_Firmware
-        end
     else
         if	filesel "Select firmware backup" $[GM9OUT]/UTL-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
+    end
+    find C:/*.sav SAVEPATH                                # Find WiFi board firmware
+                                                          # Build info for user to check and confirm
+    set PREVIEW_MODE  "Getting build info..."
+    fget $[FIRMWARE_FLASH]@18:01 FW_HH_STRING
+    fget $[FIRMWARE_FLASH]@19:01 FW_MM_STRING
+    fget $[FIRMWARE_FLASH]@1A:01 FW_DD_STRING
+    fget $[FIRMWARE_FLASH]@1B:01 FW_MO_STRING
+    fget $[FIRMWARE_FLASH]@1C:01 FW_YY_STRING
+    fget $[FIRMWARE_FLASH]@1D:01 FW_REGION_STRING
+    fget $[FIRMWARE_FLASH]@18:06 FW_FULL_STRING
+    fget $[SAVEPATH]@18:01 FW_HH_STRING_1
+    fget $[SAVEPATH]@19:01 FW_MM_STRING_1
+    fget $[SAVEPATH]@1A:01 FW_DD_STRING_1
+    fget $[SAVEPATH]@1B:01 FW_MO_STRING_1
+    fget $[SAVEPATH]@1C:01 FW_YY_STRING_1
+    fget $[SAVEPATH]@1D:01 FW_REGION_STRING_1
+    fget $[SAVEPATH]@18:06 FW_FULL_STRING_1
 
-            # Create temporary copy of firmware and import config to that before flashing.
-            cp -w $[FIRMWARE_FLASH] $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin
-            find C:/*.sav SAVEPATH
-                                                                                # Have to write the data in 100 byte blocks to due fget size error
-            fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                           # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG]     # Store data
-            fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                           # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG]     # Store data
-            fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                           # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG]     # Store data
-            fget $[SAVEPATH]@156:64 WIFI_CONFIG                                          # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG]    # Store data
-            fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                          # Backup data
-            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG]    # Store data
+    set PREVIEW_MODE  "Englishifying build info..."
+    if chk $[FW_REGION_STRING] FF
+        set FW_BUILD_REGION "NTR/Worldwide"
+    elif chk $[FW_REGION_STRING] 20
+        set FW_BUILD_REGION "USG/Worldwide"
+    elif chk $[FW_REGION_STRING] 35
+        set FW_BUILD_REGION "USG/Korea"
+    elif chk $[FW_REGION_STRING] 43
+        set FW_BUILD_REGION "NTR/China"
+    elif chk $[FW_REGION_STRING] 63
+        set FW_BUILD_REGION "USG/China"
+    elif chk $[FW_REGION_STRING] 01
+        set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING] 00
+        set FW_BUILD_REGION "NTR/Prototype"
+    end
+    if chk $[FW_REGION_STRING_1] FF
+        set FW_BUILD_REGION "NTR/Worldwide"
+    elif chk $[FW_REGION_STRING_1] 20
+        set FW_BUILD_REGION "USG/Worldwide"
+    elif chk $[FW_REGION_STRING_1] 35
+        set FW_BUILD_REGION "USG/Korea"
+    elif chk $[FW_REGION_STRING_1] 43
+        set FW_BUILD_REGION "NTR/China"
+    elif chk $[FW_REGION_STRING_1] 63
+        set FW_BUILD_REGION "USG/China"
+    elif chk $[FW_REGION_STRING_1] 01
+        set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING_1] 00
+        set FW_BUILD_REGION "NTR/Prototype"
+    end
 
-            # Add rest of config here later on
+    if chk $[FW_MO_STRING] 01
+        set FW_BUILD_MONTH "January"
+    elif chk $[FW_MO_STRING] 02
+        set FW_BUILD_MONTH "February"
+    elif chk $[FW_MO_STRING] 03
+        set FW_BUILD_MONTH "March"
+    elif chk $[FW_MO_STRING] 04
+        set FW_BUILD_MONTH "April"
+    elif chk $[FW_MO_STRING] 05
+        set FW_BUILD_MONTH "May"
+    elif chk $[FW_MO_STRING] 06
+        set FW_BUILD_MONTH "June"
+    elif chk $[FW_MO_STRING] 07
+        set FW_BUILD_MONTH "July"
+    elif chk $[FW_MO_STRING] 08
+        set FW_BUILD_MONTH "August"
+    elif chk $[FW_MO_STRING] 09
+        set FW_BUILD_MONTH "September"
+    elif chk $[FW_MO_STRING] 10
+        set FW_BUILD_MONTH "October"
+    elif chk $[FW_MO_STRING] 11
+        set FW_BUILD_MONTH "November"
+    elif chk $[FW_MO_STRING] 12
+        set FW_BUILD_MONTH "December"
+    elif set FW_BUILD_MONTH "UNKNOWN"
+    end
+    if chk $[FW_MO_STRING_1] 01
+        set FW_BUILD_MONTH "January"
+    elif chk $[FW_MO_STRING_1] 02
+        set FW_BUILD_MONTH "February"
+    elif chk $[FW_MO_STRING_1] 03
+        set FW_BUILD_MONTH "March"
+    elif chk $[FW_MO_STRING_1] 04
+        set FW_BUILD_MONTH "April"
+    elif chk $[FW_MO_STRING_1] 05
+        set FW_BUILD_MONTH "May"
+    elif chk $[FW_MO_STRING_1] 06
+        set FW_BUILD_MONTH "June"
+    elif chk $[FW_MO_STRING_1] 07
+        set FW_BUILD_MONTH "July"
+    elif chk $[FW_MO_STRING_1] 08
+        set FW_BUILD_MONTH "August"
+    elif chk $[FW_MO_STRING_1] 09
+        set FW_BUILD_MONTH "September"
+    elif chk $[FW_MO_STRING_1] 10
+        set FW_BUILD_MONTH "October"
+    elif chk $[FW_MO_STRING_1] 11
+        set FW_BUILD_MONTH "November"
+    elif chk $[FW_MO_STRING_1] 12
+        set FW_BUILD_MONTH "December"
+    elif set FW_BUILD_MONTH "UNKNOWN"
+    end
 
-            find C:/*.sav SAVEPATH
-            cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
+    # Display build info
+    set PREVIEW_MODE  "Build info for current firmware:\n\nTime: $[FW_MM_STRING_1]:$[FW_HH_STRING_1]\nDate: 20$[FW_YY_STRING_1], $[FW_BUILD_MONTH_1] $[FW_DD_STRING_1]\nRegion: $[FW_REGION_STRING_1] - $[FW_BUILD_REGION_1]\nHex: $[FW_HH_STRING_1] $[FW_MM_STRING_1] $[FW_DD_STRING_1] $[FW_MO_STRING_1] $[FW_YY_STRING_1] $[FW_REGION_STRING_1] (0x18-0x1D)\nBuild info for new firmware:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
+    if ask "Is this firmware okay?"
 
-            rm $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
-            echo "Firmware flashed okay!"
-
-        else
-            echo "Operation cancelled."
+        # Create temporary copy of firmware and import config to that before flashing.
+        cp -w $[FIRMWARE_FLASH] $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin
+                                                                            # Have to write the data in 100 byte blocks to due fget size error
+        fget $[SAVEPATH]@2A:64 WIFI_CONFIG0                                          # Backup data
+        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG0]     # Store data
+        fget $[SAVEPATH]@8E:64 WIFI_CONFIG1                                          # Backup data
+        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG1]     # Store data
+        fget $[SAVEPATH]@F2:64 WIFI_CONFIG2                                          # Backup data
+        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG2]     # Store data
+        fget $[SAVEPATH]@156:64 WIFI_CONFIG3                                         # Backup data
+        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG3]    # Store data
+        fget $[SAVEPATH]@1BA:46 WIFI_CONFIG4                                         # Backup data
+        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG4]    # Store data
+        set PREVIEW_MODE  "Confirm WiFi config:\n$[WIFI_CONFIG0]\n$[WIFI_CONFIG1]\n$[WIFI_CONFIG2]\n$[WIFI_CONFIG3]\n$[WIFI_CONFIG4]"
+        if not ask "Is the config correct?"
             goto sub_Flash_Firmware
         end
+
+        # Add user config here later on
+
+        find C:/*.sav SAVEPATH
+        cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
+
+        rm $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
+        echo "Firmware flashed okay!"
+    else
+        echo "Operation cancelled."
+        goto sub_Flash_Firmware
     end
 else
     echo "Operation cancelled."
+    goto Menu
 end
-goto Menu
 
 ###################################################################################################################################
 # End script... but why would you want to do that?

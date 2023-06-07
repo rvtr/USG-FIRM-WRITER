@@ -1,14 +1,14 @@
 ###################################################################################################################################
-# GodMode9 script to work with the USG-FIRM-WRITER cart in order to test for undumped firmwares.
+# GodMode9 script to work with the USG-FIRM-WRITER cart for managing firmwares.
 # Created: 2023/06/05
-# Last edited: 2023/06/06
+# Last updated: 2023/06/07
 # Written by rmc
 #
 #                    _______
-#                   | ===== |       
-#                   |      <|        
-#                   |>      |       
-#                   |_______|       
+#                   | ===== |
+#                   |      <|
+#                   |>      |
+#                   |_______|
 #                  | ** **** |
 #                  |   \ /   |
 #                  |    X    |
@@ -19,11 +19,9 @@
 #                     \|||/
 #                      \||
 #                      |||
-#                      |||
 #    Why do people     |||
 #    put ASCII art     |||
 #    in source code?   |||
-#                      |||
 #                      |||
 #                      /|\
 #                     |||||
@@ -52,10 +50,10 @@ set DUMP_ALL ALL
 # Main menu for all your menuing needs.
 ###################################################################################################################################
 
-@sub_Menu
-set PREVIEW_MODE "USG-FIRM-WRITER Script v0.3\n"
-labelsel -o -s "Select an option." nmopt_*
-goto sub_Menu
+@Menu
+set PREVIEW_MODE "USG-FIRM-WRITER Script v0.4\n"
+labelsel -o -s "Select an option." sub_*
+goto Menu
 
 ###################################################################################################################################
 # Dump firmware and compare to known dumps.
@@ -65,7 +63,7 @@ goto sub_Menu
 set PREVIEW_MODE  "Dumping firmware..."
 if	ask "Proceed with checker?\nThis will overwrite any old dumps, unless 'DUMP_ALL'\nwas set as 'NONE'."
 else
-    goto sub_Exit_Script
+    goto Menu
 end
 find C:/*.sav SAVEPATH
 cp -w $[SAVEPATH] $[GM9OUT]/UTL-FIRM-WRITER/CURRENT.bin             # Backup firmware for editing
@@ -80,7 +78,7 @@ elif chk $[DUMP_ALL] ALL
     cp -w $[FW_DUMP] $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_FIRMWARE.bin
                                                                                 # Backup WiFi configuration and save to dummy file
     fdummy $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin 1D6
-    cp $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
+    cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
     rm $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin
                                                                                 # Have to write the data in 100 byte blocks to due fget size error
     fget $[FW_DUMP]@2A:64 WIFI_CONFIG                                           # Backup data
@@ -91,12 +89,9 @@ elif chk $[DUMP_ALL] ALL
     fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]     # Store data
     fget $[FW_DUMP]@156:64 WIFI_CONFIG                                          # Backup data
     fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]    # Store data
-    fget $[FW_DUMP]@1BA:64 WIFI_CONFIG                                          # Backup data
+    fget $[FW_DUMP]@1BA:46 WIFI_CONFIG                                          # Backup data
     fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]    # Store data
-    fget $[FW_DUMP]@200:64 WIFI_CONFIG                                          # Backup data
-    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@1D6 $[WIFI_CONFIG]    # Store data
-end
-# Remember 1D6
+end                                                                             # Total size is 0x1D6 or 470 decimal.
 
 set PREVIEW_MODE  "Getting build info..."
 fget $[FW_DUMP]@18:01 FW_HH_STRING
@@ -182,15 +177,91 @@ elif chk $[FW_FULL_STRING] 302106091135
 elif chk $[FW_FULL_STRING] 000000000000
     echo "Already dumped... :(\nBetter luck next time?"
 elif chk 1 1
-    echo "NEW FIRMWARE: Please send a firmware dump to:\n'ianskinner519@gmail.com'.\n($[FW_DUMP])"
-    goto sub_Exit_Script
+    echo "NEW FIRMWARE: Please send the firmware dump to:\n'ianskinner519@gmail.com'.\n($[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
+    goto Menu
 end
 
 if ask "No new firmwares found.\nInsert new board and try again?"
     goto sub_Dump_Firmware
 else
-    goto sub_Exit_Script
+    goto Menu
 end
+
+###################################################################################################################################
+# For flashing firmware dumps
+###################################################################################################################################
+
+@sub_Flash_Firmware
+set PREVIEW_MODE  "Flash firmware backup."
+
+# Backup FW/config here
+
+if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
+    if  ask "Use external dumps? If no then your own dumps will be used.\nNote: for external dumps, place firmware backups in:\n$[GM9OUT]/UTL-FIRM-WRITER/External/"
+        if	filesel "Select firmware backup" $[GM9OUT]/UTL-FIRM-WRITER/External/* FIRMWARE_FLASH
+
+            # Create temporary copy of firmware and import config to that before flashing.
+            cp -w $[FIRMWARE_FLASH] $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin
+            find C:/*.sav SAVEPATH
+                                                                                # Have to write the data in 100 byte blocks to due fget size error
+            fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                           # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG]     # Store data
+            fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                           # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG]     # Store data
+            fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                           # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG]     # Store data
+            fget $[SAVEPATH]@156:64 WIFI_CONFIG                                          # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG]    # Store data
+            fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                          # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG]    # Store data
+
+            # Add rest of config here later on
+
+            find C:/*.sav SAVEPATH
+            cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
+
+            rm $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
+            echo "Firmware flashed okay!"
+
+        else
+            echo "Operation cancelled."
+            goto sub_Flash_Firmware
+        end
+    else
+        if	filesel "Select firmware backup" $[GM9OUT]/UTL-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
+
+            # Create temporary copy of firmware and import config to that before flashing.
+            cp -w $[FIRMWARE_FLASH] $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin
+            find C:/*.sav SAVEPATH
+                                                                                # Have to write the data in 100 byte blocks to due fget size error
+            fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                           # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG]     # Store data
+            fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                           # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG]     # Store data
+            fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                           # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG]     # Store data
+            fget $[SAVEPATH]@156:64 WIFI_CONFIG                                          # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG]    # Store data
+            fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                          # Backup data
+            fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG]    # Store data
+
+            # Add rest of config here later on
+
+            find C:/*.sav SAVEPATH
+            cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
+
+            rm $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
+            echo "Firmware flashed okay!"
+
+        else
+            echo "Operation cancelled."
+            goto sub_Flash_Firmware
+        end
+    end
+else
+    echo "Operation cancelled."
+end
+goto Menu
 
 ###################################################################################################################################
 # End script... but why would you want to do that?

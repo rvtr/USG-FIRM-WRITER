@@ -1,0 +1,24 @@
+{
+    "Header": {
+        "Comment": "All values are metric (mm)",
+        "CreationDate": "2023-03-10T00:52:25Z",
+        "GenerationSoftware": {
+            "Application": "EAGLE",
+            "Vendor": "Autodesk",
+            "Version": "9.7.0"
+        },
+        "Part": "Single"
+    },
+    "Overall": {
+        "BoardThickness": 1.671119,
+        "LayerNumber": 2,
+        "Name": {
+            "ProjectId": "PCB v40"
+        },
+        "Owner": "iamhaifisch iamhaifisch <iamhaifisch@gmail.com>",
+        "Size": {
+            "X": 17,
+            "Y": 26.5
+        }
+    }
+}

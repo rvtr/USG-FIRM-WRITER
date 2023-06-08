@@ -1,7 +1,7 @@
 ###################################################################################################################################
 # GodMode9 script to work with the USG-FIRM-WRITER cart for managing firmwares.
 # Created: 2023/06/05
-# Last updated: 2023/06/07
+# Last updated: 2023/06/08
 # Written by rmc
 #
 #                    _______
@@ -41,7 +41,7 @@
 ###################################################################################################################################
 
 # Create work directory
-mkdir $[GM9OUT]/UTL-FIRM-WRITER
+mkdir $[GM9OUT]/USG-FIRM-WRITER
 
 # Dump files individually, can be set as 'FW', 'ALL', or 'NONE'. The 'ALL' flag will dump the WiFi configuration as a seperate file.
 set DUMP_ALL ALL
@@ -51,7 +51,7 @@ set DUMP_ALL ALL
 ###################################################################################################################################
 
 @Menu
-set PREVIEW_MODE "USG-FIRM-WRITER Script v0.4\n"
+set PREVIEW_MODE "USG-FIRM-WRITER Script v0.5\ngithub.com/IanSkinner1982/USG-FIRM-WRITER\nWritten by rmc"
 labelsel -o -s "Select an option." sub_*
 goto Menu
 
@@ -66,41 +66,43 @@ else
     goto Menu
 end
 find C:/*.sav SAVEPATH
-cp -w $[SAVEPATH] $[GM9OUT]/UTL-FIRM-WRITER/CURRENT.bin             # Backup firmware for editing
-set FW_DUMP $[GM9OUT]/UTL-FIRM-WRITER/CURRENT.bin                   # Store firmware path
 
 # Get MAC
-fget $[FW_DUMP]@3C:06 MAC
+fget $[SAVEPATH]@3C:06 MAC
 
 if chk $[DUMP_ALL] FW
-    cp -w $[FW_DUMP] $[GM9OUT]/UTL-FIRM-WRITER/FW_$[MAC].bin
+    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/FW_$[MAC].bin
 elif chk $[DUMP_ALL] ALL
-    cp -w $[FW_DUMP] $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_FIRMWARE.bin
+    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin
                                                                                 # Backup WiFi configuration and save to dummy file
-    fdummy $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin 1D6
-    cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
-    rm $[GM9OUT]/UTL-FIRM-WRITER/temp_WIFI_CONFIG.bin
+    fdummy 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin 1D6
+    cp -w 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
+    rm 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin                           # Sadly need to create temp -> copy temp to permanent -> delete temp
+                                                                                #
+                                                                                # Why? Creating the permanent file directly if it already exits will cause a
+                                                                                # crash, and we can't tell if it already exists.
+
                                                                                 # Have to write the data in 100 byte blocks to due fget size error
-    fget $[FW_DUMP]@2A:64 WIFI_CONFIG                                           # Backup data
-    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@00 $[WIFI_CONFIG]     # Store data
-    fget $[FW_DUMP]@8E:64 WIFI_CONFIG                                           # Backup data
-    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@64 $[WIFI_CONFIG]     # Store data
-    fget $[FW_DUMP]@F2:64 WIFI_CONFIG                                           # Backup data
-    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]     # Store data
-    fget $[FW_DUMP]@156:64 WIFI_CONFIG                                          # Backup data
-    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]    # Store data
-    fget $[FW_DUMP]@1BA:46 WIFI_CONFIG                                          # Backup data
-    fset $[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]    # Store data
-end                                                                             # Total size is 0x1D6 or 470 decimal.
+    fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                          # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@00 $[WIFI_CONFIG]     # Store data  (100b)
+    fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                          # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@64 $[WIFI_CONFIG]     # Store data  (100b)
+    fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                          # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]     # Store data  (100b)
+    fget $[SAVEPATH]@156:64 WIFI_CONFIG                                         # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]    # Store data  (100b)
+    fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                         # Backup data (70b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]    # Store data  (70b)
+end                                                                             # Total size is 470b (0x1D6 hex).
 
 set PREVIEW_MODE  "Getting build info..."
-fget $[FW_DUMP]@18:01 FW_HH_STRING
-fget $[FW_DUMP]@19:01 FW_MM_STRING
-fget $[FW_DUMP]@1A:01 FW_DD_STRING
-fget $[FW_DUMP]@1B:01 FW_MO_STRING
-fget $[FW_DUMP]@1C:01 FW_YY_STRING
-fget $[FW_DUMP]@1D:01 FW_REGION_STRING
-fget $[FW_DUMP]@18:06 FW_FULL_STRING
+fget $[SAVEPATH]@18:01 FW_HH_STRING
+fget $[SAVEPATH]@19:01 FW_MM_STRING
+fget $[SAVEPATH]@1A:01 FW_DD_STRING
+fget $[SAVEPATH]@1B:01 FW_MO_STRING
+fget $[SAVEPATH]@1C:01 FW_YY_STRING
+fget $[SAVEPATH]@1D:01 FW_REGION_STRING
+fget $[SAVEPATH]@18:06 FW_FULL_STRING
 
 set PREVIEW_MODE  "Englishifying build info..."
 if chk $[FW_REGION_STRING] FF
@@ -125,7 +127,7 @@ elif chk $[FW_MO_STRING] 02
     set FW_BUILD_MONTH "February"
 elif chk $[FW_MO_STRING] 03
     set FW_BUILD_MONTH "March"
-elif chk $[FW_MO_STRING] 04
+elif chk $[FW_MO_STRING] 040x1D6
     set FW_BUILD_MONTH "April"
 elif chk $[FW_MO_STRING] 05
     set FW_BUILD_MONTH "May"
@@ -177,7 +179,207 @@ elif chk $[FW_FULL_STRING] 302106091135
 elif chk $[FW_FULL_STRING] 000000000000
     echo "Already dumped... :(\nBetter luck next time?"
 elif chk 1 1
-    echo "NEW FIRMWARE: Please send the firmware dump to:\n'ianskinner519@gmail.com'.\n($[GM9OUT]/UTL-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
+    echo "NEW FIRMWARE: Please send the firmware dump to:\n'ianskinner519@gmail.com'.\n(0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
+    goto Menu
+end
+
+if ask "No new firmwares found.\nInsert new board and try again?"
+    goto sub_Dump_Firmware
+else
+    goto Menu
+end
+
+###################################################################################################################################
+# For flashing firmware dumps
+###################################################################################################################################
+
+@sub_Flash_Firmware
+set PREVIEW_MODE  "Flash firmware backup."
+
+# Backup FW/config here
+
+if	ask "Proceed with fla###################################################################################################################################
+# GodMode9 script to work with the USG-FIRM-WRITER cart for managing firmwares.
+# Created: 2023/06/05
+# Last updated: 2023/06/08
+# Written by rmc
+#
+#                    _______
+#                   | ===== |
+#                   |      <|
+#                   |>      |
+#                   |_______|
+#                  | ** **** |
+#                  |   \ /   |
+#                  |    X    |
+#                  |   / \   |
+#                  |  _____  |
+#                  |_|| ||||_|
+#                    \ \|||
+#                     \|||/
+#                      \||
+#                      |||
+#    Why do people     |||
+#    put ASCII art     |||
+#    in source code?   |||
+#                      |||
+#                      /|\
+#                     |||||
+#                    /|/ \\
+#                   ///   \\
+#     ____ _________|||___||__________ ____
+#    |____|___________________________|__*_|
+#    |                                     |
+#    |    _____________________            |
+#    |   |  USG-FIRM-WRITER v2 |           |
+#    |   |_____________________|           |
+#    |                                     |
+#    |                                     |
+#    |            O           O .          |
+#    |_____________________________________|
+#
+###################################################################################################################################
+
+# Create work directory
+mkdir $[GM9OUT]/USG-FIRM-WRITER
+
+# Dump files individually, can be set as 'FW', 'ALL', or 'NONE'. The 'ALL' flag will dump the WiFi configuration as a seperate file.
+set DUMP_ALL ALL
+
+###################################################################################################################################
+# Main menu for all your menuing needs.
+###################################################################################################################################
+
+@Menu
+set PREVIEW_MODE "USG-FIRM-WRITER Script v0.5\ngithub.com/IanSkinner1982/USG-FIRM-WRITER\nWritten by rmc"
+labelsel -o -s "Select an option." sub_*
+goto Menu
+
+###################################################################################################################################
+# Dump firmware and compare to known dumps.
+###################################################################################################################################
+
+@sub_Dump_Firmware
+set PREVIEW_MODE  "Dumping firmware..."
+if	ask "Proceed with checker?\nThis will overwrite any old dumps, unless 'DUMP_ALL'\nwas set as 'NONE'."
+else
+    goto Menu
+end
+find C:/*.sav SAVEPATH
+
+# Get MAC
+fget $[SAVEPATH]@3C:06 MAC
+
+if chk $[DUMP_ALL] FW
+    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/FW_$[MAC].bin
+elif chk $[DUMP_ALL] ALL
+    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin
+                                                                                # Backup WiFi configuration and save to dummy file
+    fdummy 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin 1D6
+    cp -w 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
+    rm 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin                           # Sadly need to create temp -> copy temp to permanent -> delete temp
+                                                                                #
+                                                                                # Why? Creating the permanent file directly if it already exits will cause a
+                                                                                # crash, and we can't tell if it already exists.
+
+                                                                                # Have to write the data in 100 byte blocks to due fget size error
+    fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                          # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@00 $[WIFI_CONFIG]     # Store data  (100b)
+    fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                          # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@64 $[WIFI_CONFIG]     # Store data  (100b)
+    fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                          # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]     # Store data  (100b)
+    fget $[SAVEPATH]@156:64 WIFI_CONFIG                                         # Backup data (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]    # Store data  (100b)
+    fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                         # Backup data (70b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]    # Store data  (70b)
+end                                                                             # Total size is 470b (0x1D6 hex).
+
+set PREVIEW_MODE  "Getting build info..."
+fget $[SAVEPATH]@18:01 FW_HH_STRING
+fget $[SAVEPATH]@19:01 FW_MM_STRING
+fget $[SAVEPATH]@1A:01 FW_DD_STRING
+fget $[SAVEPATH]@1B:01 FW_MO_STRING
+fget $[SAVEPATH]@1C:01 FW_YY_STRING
+fget $[SAVEPATH]@1D:01 FW_REGION_STRING
+fget $[SAVEPATH]@18:06 FW_FULL_STRING
+
+set PREVIEW_MODE  "Englishifying build info..."
+if chk $[FW_REGION_STRING] FF
+    set FW_BUILD_REGION "NTR/Worldwide"
+elif chk $[FW_REGION_STRING] 20
+    set FW_BUILD_REGION "USG/Worldwide"
+elif chk $[FW_REGION_STRING] 35
+    set FW_BUILD_REGION "USG/Korea"
+elif chk $[FW_REGION_STRING] 43
+    set FW_BUILD_REGION "NTR/China"
+elif chk $[FW_REGION_STRING] 63
+    set FW_BUILD_REGION "USG/China"
+elif chk $[FW_REGION_STRING] 01
+    set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+elif chk $[FW_REGION_STRING] 00
+    set FW_BUILD_REGION "NTR/Prototype"
+end
+
+if chk $[FW_MO_STRING] 01
+    set FW_BUILD_MONTH "January"
+elif chk $[FW_MO_STRING] 02
+    set FW_BUILD_MONTH "February"
+elif chk $[FW_MO_STRING] 03
+    set FW_BUILD_MONTH "March"
+elif chk $[FW_MO_STRING] 040x1D6
+    set FW_BUILD_MONTH "April"
+elif chk $[FW_MO_STRING] 05
+    set FW_BUILD_MONTH "May"
+elif chk $[FW_MO_STRING] 06
+    set FW_BUILD_MONTH "June"
+elif chk $[FW_MO_STRING] 07
+    set FW_BUILD_MONTH "July"
+elif chk $[FW_MO_STRING] 08
+    set FW_BUILD_MONTH "August"
+elif chk $[FW_MO_STRING] 09
+    set FW_BUILD_MONTH "September"
+elif chk $[FW_MO_STRING] 10
+    set FW_BUILD_MONTH "October"
+elif chk $[FW_MO_STRING] 11
+    set FW_BUILD_MONTH "November"
+elif chk $[FW_MO_STRING] 12
+    set FW_BUILD_MONTH "December"
+elif set FW_BUILD_MONTH "UNKNOWN"
+end
+
+# Display build info
+set PREVIEW_MODE  "Build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
+
+
+if chk $[FW_FULL_STRING] 0711051004FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 5109261104FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 5108280205FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 4814060605FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 152109060543
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 161630110520
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 4514071205FF
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 192026010601
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 332105020620
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 191108030620
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 351506260463
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 302106091135
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk $[FW_FULL_STRING] 000000000000
+    echo "Already dumped... :(\nBetter luck next time?"
+elif chk 1 1
+    echo "NEW FIRMWARE: Please send the firmware dump to:\n'ianskinner519@gmail.com'.\n(0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
     goto Menu
 end
 
@@ -197,28 +399,18 @@ set PREVIEW_MODE  "Flash firmware backup."
 # Backup FW/config here
 
 if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
-    if  ask "Use external dumps? If no then your own dumps will be used.\nNote: for external dumps, place firmware backups in:\n$[GM9OUT]/UTL-FIRM-WRITER/External/"
-        if	filesel "Select firmware backup" $[GM9OUT]/UTL-FIRM-WRITER/External/* FIRMWARE_FLASH
-    else
-        if	filesel "Select firmware backup" $[GM9OUT]/UTL-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
-    end
-    find C:/*.sav SAVEPATH                                # Find WiFi board firmware
-                                                          # Build info for user to check and confirm
+    find C:/*.sav SAVEPATH                              # Find WiFi board firmware
+
+    # Display current firmware info
+
     set PREVIEW_MODE  "Getting build info..."
-    fget $[FIRMWARE_FLASH]@18:01 FW_HH_STRING
-    fget $[FIRMWARE_FLASH]@19:01 FW_MM_STRING
-    fget $[FIRMWARE_FLASH]@1A:01 FW_DD_STRING
-    fget $[FIRMWARE_FLASH]@1B:01 FW_MO_STRING
-    fget $[FIRMWARE_FLASH]@1C:01 FW_YY_STRING
-    fget $[FIRMWARE_FLASH]@1D:01 FW_REGION_STRING
-    fget $[FIRMWARE_FLASH]@18:06 FW_FULL_STRING
-    fget $[SAVEPATH]@18:01 FW_HH_STRING_1
-    fget $[SAVEPATH]@19:01 FW_MM_STRING_1
-    fget $[SAVEPATH]@1A:01 FW_DD_STRING_1
-    fget $[SAVEPATH]@1B:01 FW_MO_STRING_1
-    fget $[SAVEPATH]@1C:01 FW_YY_STRING_1
-    fget $[SAVEPATH]@1D:01 FW_REGION_STRING_1
-    fget $[SAVEPATH]@18:06 FW_FULL_STRING_1
+    fget $[SAVEPATH]@18:01 FW_HH_STRING
+    fget $[SAVEPATH]@19:01 FW_MM_STRING
+    fget $[SAVEPATH]@1A:01 FW_DD_STRING
+    fget $[SAVEPATH]@1B:01 FW_MO_STRING
+    fget $[SAVEPATH]@1C:01 FW_YY_STRING
+    fget $[SAVEPATH]@1D:01 FW_REGION_STRING
+    fget $[SAVEPATH]@18:06 FW_FULL_STRING
 
     set PREVIEW_MODE  "Englishifying build info..."
     if chk $[FW_REGION_STRING] FF
@@ -234,21 +426,6 @@ if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
     elif chk $[FW_REGION_STRING] 01
         set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
     elif chk $[FW_REGION_STRING] 00
-        set FW_BUILD_REGION "NTR/Prototype"
-    end
-    if chk $[FW_REGION_STRING_1] FF
-        set FW_BUILD_REGION "NTR/Worldwide"
-    elif chk $[FW_REGION_STRING_1] 20
-        set FW_BUILD_REGION "USG/Worldwide"
-    elif chk $[FW_REGION_STRING_1] 35
-        set FW_BUILD_REGION "USG/Korea"
-    elif chk $[FW_REGION_STRING_1] 43
-        set FW_BUILD_REGION "NTR/China"
-    elif chk $[FW_REGION_STRING_1] 63
-        set FW_BUILD_REGION "USG/China"
-    elif chk $[FW_REGION_STRING_1] 01
-        set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
-    elif chk $[FW_REGION_STRING_1] 00
         set FW_BUILD_REGION "NTR/Prototype"
     end
 
@@ -278,70 +455,304 @@ if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
         set FW_BUILD_MONTH "December"
     elif set FW_BUILD_MONTH "UNKNOWN"
     end
-    if chk $[FW_MO_STRING_1] 01
+
+    # Display build info
+    set PREVIEW_MODE  "Current firmware build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
+
+    if  ask "Use external dumps? If no then your own dumps from\nthis script will be used.\nNote: for external dumps, place firmware backups in:\n0:/USG-FIRM-WRITER/External/"
+        if	filesel "Select firmware backup" 0:/USG-FIRM-WRITER/External/* FIRMWARE_FLASH
+        else
+            echo "No file selected, cancelling."
+            goto sub_Flash_Firmware
+        end
+    else
+        if	filesel "Select firmware backup" 0:/USG-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
+        else
+            echo "No file selected, cancelling."
+            goto sub_Flash_Firmware
+        end
+    end
+
+    # Display current firmware info
+
+    set PREVIEW_MODE  "Getting build info..."
+    fget $[FIRMWARE_FLASH]@18:01 FW_HH_STRING
+    fget $[FIRMWARE_FLASH]@19:01 FW_MM_STRING
+    fget $[FIRMWARE_FLASH]@1A:01 FW_DD_STRING
+    fget $[FIRMWARE_FLASH]@1B:01 FW_MO_STRING
+    fget $[FIRMWARE_FLASH]@1C:01 FW_YY_STRING
+    fget $[FIRMWARE_FLASH]@1D:01 FW_REGION_STRING
+    fget $[FIRMWARE_FLASH]@18:06 FW_FULL_STRING
+
+    set PREVIEW_MODE  "Englishifying build info..."
+    if chk $[FW_REGION_STRING] FF
+        set FW_BUILD_REGION "NTR/Worldwide"
+    elif chk $[FW_REGION_STRING] 20
+        set FW_BUILD_REGION "USG/Worldwide"
+    elif chk $[FW_REGION_STRING] 35
+        set FW_BUILD_REGION "USG/Korea"
+    elif chk $[FW_REGION_STRING] 43
+        set FW_BUILD_REGION "NTR/China"
+    elif chk $[FW_REGION_STRING] 63
+        set FW_BUILD_REGION "USG/China"
+    elif chk $[FW_REGION_STRING] 01
+        set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING] 00
+        set FW_BUILD_REGION "NTR/Prototype"
+    end
+
+    if chk $[FW_MO_STRING] 01
         set FW_BUILD_MONTH "January"
-    elif chk $[FW_MO_STRING_1] 02
+    elif chk $[FW_MO_STRING] 02
         set FW_BUILD_MONTH "February"
-    elif chk $[FW_MO_STRING_1] 03
+    elif chk $[FW_MO_STRING] 03
         set FW_BUILD_MONTH "March"
-    elif chk $[FW_MO_STRING_1] 04
+    elif chk $[FW_MO_STRING] 04
         set FW_BUILD_MONTH "April"
-    elif chk $[FW_MO_STRING_1] 05
+    elif chk $[FW_MO_STRING] 05
         set FW_BUILD_MONTH "May"
-    elif chk $[FW_MO_STRING_1] 06
+    elif chk $[FW_MO_STRING] 06
         set FW_BUILD_MONTH "June"
-    elif chk $[FW_MO_STRING_1] 07
+    elif chk $[FW_MO_STRING] 07
         set FW_BUILD_MONTH "July"
-    elif chk $[FW_MO_STRING_1] 08
+    elif chk $[FW_MO_STRING] 08
         set FW_BUILD_MONTH "August"
-    elif chk $[FW_MO_STRING_1] 09
+    elif chk $[FW_MO_STRING] 09
         set FW_BUILD_MONTH "September"
-    elif chk $[FW_MO_STRING_1] 10
+    elif chk $[FW_MO_STRING] 10
         set FW_BUILD_MONTH "October"
-    elif chk $[FW_MO_STRING_1] 11
+    elif chk $[FW_MO_STRING] 11
         set FW_BUILD_MONTH "November"
-    elif chk $[FW_MO_STRING_1] 12
+    elif chk $[FW_MO_STRING] 12
         set FW_BUILD_MONTH "December"
     elif set FW_BUILD_MONTH "UNKNOWN"
     end
 
     # Display build info
-    set PREVIEW_MODE  "Build info for current firmware:\n\nTime: $[FW_MM_STRING_1]:$[FW_HH_STRING_1]\nDate: 20$[FW_YY_STRING_1], $[FW_BUILD_MONTH_1] $[FW_DD_STRING_1]\nRegion: $[FW_REGION_STRING_1] - $[FW_BUILD_REGION_1]\nHex: $[FW_HH_STRING_1] $[FW_MM_STRING_1] $[FW_DD_STRING_1] $[FW_MO_STRING_1] $[FW_YY_STRING_1] $[FW_REGION_STRING_1] (0x18-0x1D)\nBuild info for new firmware:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
-    if ask "Is this firmware okay?"
+    set PREVIEW_MODE  "New firmware build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
 
-        # Create temporary copy of firmware and import config to that before flashing.
-        cp -w $[FIRMWARE_FLASH] $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin
-                                                                            # Have to write the data in 100 byte blocks to due fget size error
-        fget $[SAVEPATH]@2A:64 WIFI_CONFIG0                                          # Backup data
-        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG0]     # Store data
-        fget $[SAVEPATH]@8E:64 WIFI_CONFIG1                                          # Backup data
-        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG1]     # Store data
-        fget $[SAVEPATH]@F2:64 WIFI_CONFIG2                                          # Backup data
-        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG2]     # Store data
-        fget $[SAVEPATH]@156:64 WIFI_CONFIG3                                         # Backup data
-        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG3]    # Store data
-        fget $[SAVEPATH]@1BA:46 WIFI_CONFIG4                                         # Backup data
-        fset $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG4]    # Store data
-        set PREVIEW_MODE  "Confirm WiFi config:\n$[WIFI_CONFIG0]\n$[WIFI_CONFIG1]\n$[WIFI_CONFIG2]\n$[WIFI_CONFIG3]\n$[WIFI_CONFIG4]"
-        if not ask "Is the config correct?"
-            goto sub_Flash_Firmware
-        end
-
+    if not ask "Are you sure you want to flash the new firmware?"
+        echo "Operation cancelled."
+        goto Menu
+    end
+                                                        # Build info for user to check and confirm
+    # Create temporary copy of firmware and import config to that before flashing.
+    cp -w $[FIRMWARE_FLASH] 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin
+                                                                        # Have to write the data in 100 byte blocks to due fget size error
+    fget $[SAVEPATH]@2A:64 WIFI_CONFIG0                                          # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG0]     # Store data
+    fget $[SAVEPATH]@8E:64 WIFI_CONFIG1                                          # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG1]     # Store data
+    fget $[SAVEPATH]@F2:64 WIFI_CONFIG2                                          # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG2]     # Store data
+    fget $[SAVEPATH]@156:64 WIFI_CONFIG3                                         # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG3]    # Store data
+    fget $[SAVEPATH]@1BA:46 WIFI_CONFIG4                                         # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG4]    # Store data
         # Add user config here later on
 
         find C:/*.sav SAVEPATH
-        cp -w $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
+        cp -w 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
 
-        rm $[GM9OUT]/UTL-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
+        rm 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
         echo "Firmware flashed okay!"
-    else
-        echo "Operation cancelled."
-        goto sub_Flash_Firmware
-    end
+
 else
     echo "Operation cancelled."
     goto Menu
 end
+
+goto Menu
+
+###################################################################################################################################
+# Inject WiFi configuration from one backup to another
+###################################################################################################################################
+
+@sub_Inject_WiFi_Config
+echo "NOW MAKING"
+goto Menu
+
+
+###################################################################################################################################
+# End script... but why would you want to do that?
+###################################################################################################################################
+
+@sub_Exit_Script
+echo "Exiting script, have a nice day!"
+sher?\nThis will overwrite the current firmware."
+    find C:/*.sav SAVEPATH                              # Find WiFi board firmware
+
+    # Display current firmware info
+
+    set PREVIEW_MODE  "Getting build info..."
+    fget $[SAVEPATH]@18:01 FW_HH_STRING
+    fget $[SAVEPATH]@19:01 FW_MM_STRING
+    fget $[SAVEPATH]@1A:01 FW_DD_STRING
+    fget $[SAVEPATH]@1B:01 FW_MO_STRING
+    fget $[SAVEPATH]@1C:01 FW_YY_STRING
+    fget $[SAVEPATH]@1D:01 FW_REGION_STRING
+    fget $[SAVEPATH]@18:06 FW_FULL_STRING
+
+    set PREVIEW_MODE  "Englishifying build info..."
+    if chk $[FW_REGION_STRING] FF
+        set FW_BUILD_REGION "NTR/Worldwide"
+    elif chk $[FW_REGION_STRING] 20
+        set FW_BUILD_REGION "USG/Worldwide"
+    elif chk $[FW_REGION_STRING] 35
+        set FW_BUILD_REGION "USG/Korea"
+    elif chk $[FW_REGION_STRING] 43
+        set FW_BUILD_REGION "NTR/China"
+    elif chk $[FW_REGION_STRING] 63
+        set FW_BUILD_REGION "USG/China"
+    elif chk $[FW_REGION_STRING] 01
+        set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING] 00
+        set FW_BUILD_REGION "NTR/Prototype"
+    end
+
+    if chk $[FW_MO_STRING] 01
+        set FW_BUILD_MONTH "January"
+    elif chk $[FW_MO_STRING] 02
+        set FW_BUILD_MONTH "February"
+    elif chk $[FW_MO_STRING] 03
+        set FW_BUILD_MONTH "March"
+    elif chk $[FW_MO_STRING] 04
+        set FW_BUILD_MONTH "April"
+    elif chk $[FW_MO_STRING] 05
+        set FW_BUILD_MONTH "May"
+    elif chk $[FW_MO_STRING] 06
+        set FW_BUILD_MONTH "June"
+    elif chk $[FW_MO_STRING] 07
+        set FW_BUILD_MONTH "July"
+    elif chk $[FW_MO_STRING] 08
+        set FW_BUILD_MONTH "August"
+    elif chk $[FW_MO_STRING] 09
+        set FW_BUILD_MONTH "September"
+    elif chk $[FW_MO_STRING] 10
+        set FW_BUILD_MONTH "October"
+    elif chk $[FW_MO_STRING] 11
+        set FW_BUILD_MONTH "November"
+    elif chk $[FW_MO_STRING] 12
+        set FW_BUILD_MONTH "December"
+    elif set FW_BUILD_MONTH "UNKNOWN"
+    end
+
+    # Display build info
+    set PREVIEW_MODE  "Current firmware build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
+
+    if  ask "Use external dumps? If no then your own dumps from\nthis script will be used.\nNote: for external dumps, place firmware backups in:\n0:/USG-FIRM-WRITER/External/"
+        if	filesel "Select firmware backup" 0:/USG-FIRM-WRITER/External/* FIRMWARE_FLASH
+        else
+            echo "No file selected, cancelling."
+            goto sub_Flash_Firmware
+        end
+    else
+        if	filesel "Select firmware backup" 0:/USG-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
+        else
+            echo "No file selected, cancelling."
+            goto sub_Flash_Firmware
+        end
+    end
+
+    # Display current firmware info
+
+    set PREVIEW_MODE  "Getting build info..."
+    fget $[FIRMWARE_FLASH]@18:01 FW_HH_STRING
+    fget $[FIRMWARE_FLASH]@19:01 FW_MM_STRING
+    fget $[FIRMWARE_FLASH]@1A:01 FW_DD_STRING
+    fget $[FIRMWARE_FLASH]@1B:01 FW_MO_STRING
+    fget $[FIRMWARE_FLASH]@1C:01 FW_YY_STRING
+    fget $[FIRMWARE_FLASH]@1D:01 FW_REGION_STRING
+    fget $[FIRMWARE_FLASH]@18:06 FW_FULL_STRING
+
+    set PREVIEW_MODE  "Englishifying build info..."
+    if chk $[FW_REGION_STRING] FF
+        set FW_BUILD_REGION "NTR/Worldwide"
+    elif chk $[FW_REGION_STRING] 20
+        set FW_BUILD_REGION "USG/Worldwide"
+    elif chk $[FW_REGION_STRING] 35
+        set FW_BUILD_REGION "USG/Korea"
+    elif chk $[FW_REGION_STRING] 43
+        set FW_BUILD_REGION "NTR/China"
+    elif chk $[FW_REGION_STRING] 63
+        set FW_BUILD_REGION "USG/China"
+    elif chk $[FW_REGION_STRING] 01
+        set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING] 00
+        set FW_BUILD_REGION "NTR/Prototype"
+    end
+
+    if chk $[FW_MO_STRING] 01
+        set FW_BUILD_MONTH "January"
+    elif chk $[FW_MO_STRING] 02
+        set FW_BUILD_MONTH "February"
+    elif chk $[FW_MO_STRING] 03
+        set FW_BUILD_MONTH "March"
+    elif chk $[FW_MO_STRING] 04
+        set FW_BUILD_MONTH "April"
+    elif chk $[FW_MO_STRING] 05
+        set FW_BUILD_MONTH "May"
+    elif chk $[FW_MO_STRING] 06
+        set FW_BUILD_MONTH "June"
+    elif chk $[FW_MO_STRING] 07
+        set FW_BUILD_MONTH "July"
+    elif chk $[FW_MO_STRING] 08
+        set FW_BUILD_MONTH "August"
+    elif chk $[FW_MO_STRING] 09
+        set FW_BUILD_MONTH "September"
+    elif chk $[FW_MO_STRING] 10
+        set FW_BUILD_MONTH "October"
+    elif chk $[FW_MO_STRING] 11
+        set FW_BUILD_MONTH "November"
+    elif chk $[FW_MO_STRING] 12
+        set FW_BUILD_MONTH "December"
+    elif set FW_BUILD_MONTH "UNKNOWN"
+    end
+
+    # Display build info
+    set PREVIEW_MODE  "New firmware build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
+
+    if not ask "Are you sure you want to flash the new firmware?"
+        echo "Operation cancelled."
+        goto Menu
+    end
+                                                        # Build info for user to check and confirm
+    # Create temporary copy of firmware and import config to that before flashing.
+    cp -w $[FIRMWARE_FLASH] 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin
+                                                                        # Have to write the data in 100 byte blocks to due fget size error
+    fget $[SAVEPATH]@2A:64 WIFI_CONFIG0                                          # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG0]     # Store data
+    fget $[SAVEPATH]@8E:64 WIFI_CONFIG1                                          # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG1]     # Store data
+    fget $[SAVEPATH]@F2:64 WIFI_CONFIG2                                          # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG2]     # Store data
+    fget $[SAVEPATH]@156:64 WIFI_CONFIG3                                         # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG3]    # Store data
+    fget $[SAVEPATH]@1BA:46 WIFI_CONFIG4                                         # Backup data
+    fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG4]    # Store data
+        # Add user config here later on
+
+        find C:/*.sav SAVEPATH
+        cp -w 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]          # Flash wireless fixed firmware
+
+        rm 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
+        echo "Firmware flashed okay!"
+
+else
+    echo "Operation cancelled."
+    goto Menu
+end
+
+goto Menu
+
+###################################################################################################################################
+# Inject WiFi configuration from one backup to another
+###################################################################################################################################
+
+@sub_Inject_WiFi_Config
+echo "NOW MAKING"
+goto Menu
+
 
 ###################################################################################################################################
 # End script... but why would you want to do that?

@@ -20,7 +20,7 @@ Normal methods might include hotswapping WiFi boards on a DS lite motherboard (r
 You will need basic soldering supplies as well as the following parts:
 - DS cartridge with a board ID of `C03-10` or `Y10-01`
 - [Molex 52991-0308](https://mou.sr/42sjkJz) socket
-- Molex socket breakout board. See gerber files for a premade board one [here.](https://github.com/IanSkinner1982/USG-FIRM-WRITER/tree/main/Breakout_Board_GerberFiles) (can to be sent to a PCB manufacturer like [PCBWay](https://www.pcbway.com/))
+- Molex socket breakout board. See gerber files for a premade board one [here.](https://github.com/rvtr/USG-FIRM-WRITER/tree/main/Breakout_Board_GerberFiles) (can to be sent to a PCB manufacturer like [PCBWay](https://www.pcbway.com/))
 
 Steps:
 1. Remove the shell from the cartridge
@@ -31,7 +31,7 @@ Steps:
     - If using your own board, refer to the chart below and connect `1-11`, `2-13`, `3-17`, `4-5`, `5-7`, `6-29`, `7-27`, `8-9`
 
 Having trouble finding which pin is what number on the cartridge? Refer to this chart, and note that the ink will have the same semicircle "cut out" around the U2/save chip pads. Match the orientation of that on the board with the chart.
-![image](https://randommeaninglesscharacters.com/assets/dsi/blog/UTL-FIRM-WRITER.jpg)
+![image](https://cdn.randommeaninglesscharacters.com/blog/2023-04-13-wifi-board-flasher/UTL-FIRM-WRITER.jpg)
 
 After having connected the wires, you should be good. Plug a WiFi board into the Molex socket, plug the cartridge into any DS console, then try dumping the save. Check any outputted `.sav` file in a hex editor to make sure they're proper firmware dumps.
 
@@ -40,7 +40,7 @@ Then, test the board by editing the `.sav` file (could be replacing it with a ne
 ## Running the script
 CFW and GodMode9 must already be installed, I will not go over this here.
 
-1. Download the [script](https://github.com/IanSkinner1982/USG-FIRM-WRITER/blob/main/Script.gm9) from this repository
+1. Download the [script](https://github.com/rvtr/USG-FIRM-WRITER/blob/main/Script.gm9) from this repository
 2. Copy the downloaded script to your 3DS SD card at `SD:/gm9/scripts/`
 3. Open GodMode9 on your 3DS
 4. Plug the USG-FIRM-WRITER cart into your console, along with a WiFi board connected

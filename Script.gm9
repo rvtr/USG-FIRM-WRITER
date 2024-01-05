@@ -1,7 +1,7 @@
 ###################################################################################################################################
-# GodMode9 script to work with the USG-FIRM-WRITER cart for managing firmwares.
+# GodMode9 script to work with my custom USG-FIRM-WRITER cart, a tool that manages DS lite firmwares.
 # Created: 2023/06/05
-# Last updated: 2023/06/08
+# Last updated: 2024/01/04
 # Written by rmc
 #
 #                    _______
@@ -51,7 +51,7 @@ set DUMP_ALL ALL
 ###################################################################################################################################
 
 @Menu
-set PREVIEW_MODE "USG-FIRM-WRITER Script v0.5\ngithub.com/IanSkinner1982/USG-FIRM-WRITER\nWritten by rmc"
+set PREVIEW_MODE "USG-FIRM-WRITER Script v1.0\nhttps://github.com/rvtr/USG-FIRM-WRITER\nWritten by rmc"
 labelsel -o -s "Select an option." sub_*
 goto Menu
 
@@ -61,38 +61,38 @@ goto Menu
 
 @sub_Dump_Firmware
 set PREVIEW_MODE  "Dumping firmware..."
-if	ask "Proceed with checker?\nThis will overwrite any old dumps, unless 'DUMP_ALL'\nwas set as 'NONE'."
+if  ask "Proceed with checker?\nThis will overwrite any old dumps, unless 'DUMP_ALL'\nwas set as 'NONE'."
 else
     goto Menu
 end
 find C:/*.sav SAVEPATH
 
 # Get MAC
-fget $[SAVEPATH]@3C:06 MAC
+fget $[SAVEPATH]@36:06 MAC
 
 if chk $[DUMP_ALL] FW
-    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/FW_$[MAC].bin
+    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin
 elif chk $[DUMP_ALL] ALL
     cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin
                                                                                 # Backup WiFi configuration and save to dummy file
     fdummy 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin 1D6
     cp -w 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin
-    rm 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin                           # Sadly need to create temp -> copy temp to permanent -> delete temp
+    rm 0:/USG-FIRM-WRITER/temp_WIFI_CONFIG.bin                                  # Sadly need to create temp -> copy temp to permanent -> delete temp
                                                                                 #
                                                                                 # Why? Creating the permanent file directly if it already exits will cause a
                                                                                 # crash, and we can't tell if it already exists.
 
                                                                                 # Have to write the data in 100 byte blocks to due fget size error
     fget $[SAVEPATH]@2A:64 WIFI_CONFIG                                          # Backup data (100b)
-    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@00 $[WIFI_CONFIG]     # Store data  (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@00 $[WIFI_CONFIG]            # Store data  (100b)
     fget $[SAVEPATH]@8E:64 WIFI_CONFIG                                          # Backup data (100b)
-    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@64 $[WIFI_CONFIG]     # Store data  (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@64 $[WIFI_CONFIG]            # Store data  (100b)
     fget $[SAVEPATH]@F2:64 WIFI_CONFIG                                          # Backup data (100b)
-    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]     # Store data  (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@C8 $[WIFI_CONFIG]            # Store data  (100b)
     fget $[SAVEPATH]@156:64 WIFI_CONFIG                                         # Backup data (100b)
-    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]    # Store data  (100b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@12C $[WIFI_CONFIG]           # Store data  (100b)
     fget $[SAVEPATH]@1BA:46 WIFI_CONFIG                                         # Backup data (70b)
-    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]    # Store data  (70b)
+    fset 0:/USG-FIRM-WRITER/$[MAC]_WIFI_CONFIG.bin@190 $[WIFI_CONFIG]           # Store data  (70b)
 end                                                                             # Total size is 470b (0x1D6 hex).
 
 set PREVIEW_MODE  "Getting build info..."
@@ -151,39 +151,38 @@ end
 # Display build info
 set PREVIEW_MODE  "Build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
 
-
 if chk $[FW_FULL_STRING] 0711051004FF
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 5109261104FF
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 5108280205FF
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 4814060605FF
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 152109060543
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 161630110520
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 4514071205FF
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 192026010601
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 332105020620
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 191108030620
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 351506260463
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 302106091135
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 000000000000
-    echo "Already dumped... :(\nBetter luck next time?"
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk 1 1
-    echo "NEW FIRMWARE: Please send the firmware dump to:\n'ianskinner519@gmail.com'.\n(0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
+    echo "UNKNOWN FIRMWARE: Please send the firmware dump to:\n'lillian@randommeaninglesscharacters.com'.\n(0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
     goto Menu
 end
 
-if ask "No new firmwares found.\nInsert new board and try again?"
+if ask "Dump another WiFi board?"
     goto sub_Dump_Firmware
 else
     goto Menu
@@ -198,7 +197,7 @@ set PREVIEW_MODE  "Flash firmware backup."
 
 # Backup FW/config here
 
-if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
+if  ask "Proceed with flasher?\nThis will overwrite the current firmware."
     find C:/*.sav SAVEPATH                              # Find WiFi board firmware
 
     # Display current firmware info
@@ -260,13 +259,13 @@ if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
     set PREVIEW_MODE  "Current firmware build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
 
     if  ask "Use external dumps? If no then your own dumps from\nthis script will be used.\nNote: for external dumps, place firmware backups in:\n0:/USG-FIRM-WRITER/External/"
-        if	filesel "Select firmware backup" 0:/USG-FIRM-WRITER/External/* FIRMWARE_FLASH
+        if  filesel "Select firmware backup" 0:/USG-FIRM-WRITER/External/* FIRMWARE_FLASH
         else
             echo "No file selected, cancelling."
             goto sub_Flash_Firmware
         end
     else
-        if	filesel "Select firmware backup" 0:/USG-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
+        if  filesel "Select firmware backup" 0:/USG-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
         else
             echo "No file selected, cancelling."
             goto sub_Flash_Firmware
@@ -356,7 +355,6 @@ if	ask "Proceed with flasher?\nThis will overwrite the current firmware."
 
         rm 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin                         # Delete temp edited file
         echo "Firmware flashed okay!"
-
 else
     echo "Operation cancelled."
     goto Menu
@@ -369,9 +367,64 @@ goto Menu
 ###################################################################################################################################
 
 @sub_Inject_WiFi_Config
-echo "NOW MAKING"
-goto Menu
+echo "Warning: make sure you have a backup first!\nIf you ever loose this data, it is impossible to recreate."
+if not ask "Are you sure you want to continue?"
+    echo "Operation cancelled."
+    goto Menu
+end
 
+if  filesel "Select WiFi config backup" 0:/USG-FIRM-WRITER/*WIFI_CONFIG.bin WIFI_CONFIG_FLASH
+else
+    echo "No file selected, cancelling."
+    goto Menu
+end
+
+if not ask "Inject into WiFi board? If no then you can select\na firmware backup from the SD card."
+    set INJECT_MODE SD
+    if  ask "Inject to external firmware dumps?\nIf no then your own dumps from this script will be used.\nNote: for external dumps, place firmware backups in:\n0:/USG-FIRM-WRITER/External/"
+        if  filesel "Select firmware to inject into" 0:/USG-FIRM-WRITER/External/* FIRMWARE_FLASH
+        else
+            echo "No file selected, cancelling."
+            goto Menu
+        end
+    else
+        if  filesel "Select firmware to inject into" 0:/USG-FIRM-WRITER/*FIRMWARE.bin FIRMWARE_FLASH
+        else
+            echo "No file selected, cancelling."
+            goto Menu
+        end
+    end
+else
+    set INJECT_MODE BOARD
+end
+
+if chk $[INJECT_MODE] BOARD
+    find C:/*.sav SAVEPATH
+    cp -w $[SAVEPATH] 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin
+else
+    cp -w $[FIRMWARE_FLASH] 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin
+end
+
+fget $[WIFI_CONFIG_FLASH]@00:64 WIFI_CONFIG0                     # Backup data
+fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@2A $[WIFI_CONFIG0]     # Store data
+fget $[WIFI_CONFIG_FLASH]@64:64 WIFI_CONFIG1                     # Backup data
+fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@8E $[WIFI_CONFIG1]     # Store data
+fget $[WIFI_CONFIG_FLASH]@C8:64 WIFI_CONFIG2                     # Backup data
+fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@F2 $[WIFI_CONFIG2]     # Store data
+fget $[WIFI_CONFIG_FLASH]@12C:64 WIFI_CONFIG3                    # Backup data
+fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@156 $[WIFI_CONFIG3]    # Store data
+fget $[WIFI_CONFIG_FLASH]@190:46 WIFI_CONFIG4                    # Backup data
+fset 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin@1BA $[WIFI_CONFIG4]    # Store data
+
+if chk $[INJECT_MODE] BOARD
+    cp -w 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin $[SAVEPATH]
+else
+    cp -w 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin $[FIRMWARE_FLASH]
+end
+rm 0:/USG-FIRM-WRITER/temp_FIRMWARE.bin
+echo "Injected okay!"
+
+goto Menu
 
 ###################################################################################################################################
 # End script... but why would you want to do that?
@@ -379,3 +432,17 @@ goto Menu
 
 @sub_Exit_Script
 echo "Exiting script, have a nice day!"
+
+# Firmware index
+# 0x018-0x01C = build date in: hour, minute, day, month, year
+# 0x01D       = region
+# 0x02A-0x1FF = WiFi config
+#   0x036-0x03B = MAC address
+#
+#
+#
+#
+#
+#
+#
+#

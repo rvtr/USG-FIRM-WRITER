@@ -380,7 +380,7 @@ goto Menu
 ###################################################################################################################################
 
 @sub_Inject_WiFi_Config
-echo "Warning: make sure you have a backup first!\nIf you ever loose this data, it is impossible to recreate."
+echo "Warning: make sure you have a backup first!\nIf you ever lose this data, it is impossible to recreate."
 if not ask "Are you sure you want to continue?"
     echo "Operation cancelled."
     goto Menu

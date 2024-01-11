@@ -1,5 +1,5 @@
 ###################################################################################################################################
-# GodMode9 script to work with my custom USG-FIRM-WRITER cart, a tool that manages DS lite firmwares.
+# GodMode9 script to work with my custom USG-FIRM-WRITER cart, a tool that manages DS Lite firmwares.
 # Created: 2023/06/05
 # Last updated: 2024/01/04
 # Written by rmc
@@ -380,7 +380,7 @@ goto Menu
 ###################################################################################################################################
 
 @sub_Inject_WiFi_Config
-echo "Warning: make sure you have a backup first!\nIf you ever loose this data, it is impossible to recreate."
+echo "Warning: make sure you have a backup first!\nIf you ever lose this data, it is impossible to recreate."
 if not ask "Are you sure you want to continue?"
     echo "Operation cancelled."
     goto Menu

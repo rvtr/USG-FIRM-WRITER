@@ -1,5 +1,5 @@
 # USG-FIRM-WRITER
-Hardware and software to manage DS lite (USG) firmware. Using this requires making a USG-FIRM-WRITER cart to read/write the WiFi board (this holds the firmware) through the cartridge port, as well as a modded 2/3DS to run the script (optional). Assembly details are below.
+Hardware and software to manage DS Lite (USG) firmware. Using this requires making a USG-FIRM-WRITER cart to read/write the WiFi board (this holds the firmware) through the cartridge port, as well as a modded 2/3DS to run the script (optional). Assembly details are below.
 
 This project is not very practical for most and I only would recommend using it if you find yourself having 170+ WiFi boards... 
 
@@ -10,11 +10,11 @@ This project is not very practical for most and I only would recommend using it 
 4. [Credits](#credits)
 
 ## How the cart works
-The DS lite WiFi board stores firmware on the same exact flash chip as the save chip in most DS cartridges, meaning that both chips are read and written to in the same way. If you remove the save chip from the cart and wire the WiFi board along the same lines, you can redirect the signals to the firmware chip and "trick" the DS into treating it as just another save file. 
+The DS Lite WiFi board stores firmware on the same exact flash chip as the save chip in most DS cartridges, meaning that both chips are read and written to in the same way. If you remove the save chip from the cart and wire the WiFi board along the same lines, you can redirect the signals to the firmware chip and "trick" the DS into treating it as just another save file. 
 
-Normal methods might include hotswapping WiFi boards on a DS lite motherboard (risk of shorting), or holding SL1 shut on writing (immediate brick if you let go). This replaces those dangerous methods with a safer, faster, and more powerful<b>*</b> option that can be used on any DS console.
+Normal methods might include hotswapping WiFi boards on a DS Lite motherboard (risk of shorting), or holding SL1 shut on writing (immediate brick if you let go). This replaces those dangerous methods with a safer, faster, and more powerful<b>*</b> option that can be used on any DS console.
 
-<sup><b>*</b>currently the only flashing tools that exist will permanently break wireless without proper preperation, do not fully support 512kb firmwares, do not transfer user data, and (mostly) aren't maintained anymore</sup>
+<sup><b>*</b>currently the only flashing tools that exist will permanently break wireless without proper preparation, do not fully support 512kb firmwares, do not transfer user data, and (mostly) aren't maintained anymore.</sup>
 
 ## Assembling the cart
 You will need basic soldering supplies as well as the following parts:

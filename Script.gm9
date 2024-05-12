@@ -159,7 +159,7 @@ end
 
 # Display build info if flashme
 
-
+# http://docs.randommeaninglesscharacters.com/dsfirmwares.html
 if chk $[FW_FULL_STRING] 0711051004FF
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 5109261104FF
@@ -178,17 +178,23 @@ elif chk $[FW_FULL_STRING] 192026010601
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 332105020620
     echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 592020020600 # ISNE
+    echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 191108030620
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 351506260463
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 302106091135
+elif chk $[FW_FULL_STRING] 302109110635
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 000000000000
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 5108280205FF # FlashMe (phat)
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 332105020620 # FlashMe (lite)
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 332105020620 # CreeboMeBeta2
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 332105020620 # fwnitro
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk 1 1
     echo "UNKNOWN FIRMWARE: Please send the firmware dump to:\n'lillian@randommeaninglesscharacters.com'.\n(0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
@@ -237,6 +243,12 @@ if  ask "Proceed with flasher?\nThis will overwrite the current firmware."
         set FW_BUILD_REGION "USG/China"
     elif chk $[FW_REGION_STRING] 01
         set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING] 90
+        set FW_BUILD_REGION "CFW"
+    elif chk $[FW_REGION_STRING] B4
+        set FW_BUILD_REGION "CFW"
+    elif chk $[FW_REGION_STRING] BC
+        set FW_BUILD_REGION "CFW"
     elif chk $[FW_REGION_STRING] 00
         set FW_BUILD_REGION "NTR/Prototype"
     end
@@ -309,6 +321,12 @@ if  ask "Proceed with flasher?\nThis will overwrite the current firmware."
         set FW_BUILD_REGION "USG/China"
     elif chk $[FW_REGION_STRING] 01
         set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
+    elif chk $[FW_REGION_STRING] 90
+        set FW_BUILD_REGION "CFW"
+    elif chk $[FW_REGION_STRING] B4
+        set FW_BUILD_REGION "CFW"
+    elif chk $[FW_REGION_STRING] BC
+        set FW_BUILD_REGION "CFW"
     elif chk $[FW_REGION_STRING] 00
         set FW_BUILD_REGION "NTR/Prototype"
     end

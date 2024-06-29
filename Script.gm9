@@ -1,7 +1,7 @@
 ###################################################################################################################################
 # GodMode9 script to work with my custom USG-FIRM-WRITER cart, a tool that manages DS Lite firmwares.
 # Created: 2023/06/05
-# Last updated: 2024/01/04
+# Last updated: 2024/06/29
 # Written by rmc
 #
 #                    _______
@@ -119,6 +119,8 @@ elif chk $[FW_REGION_STRING] 01
     set FW_BUILD_REGION "NIS/Worldwide (Nintendo Zone Box)"
 elif chk $[FW_REGION_STRING] 00
     set FW_BUILD_REGION "NTR/Prototype"
+    elif chk $[FW_REGION_STRING] A0
+        set FW_BUILD_REGION "NTR/IS-NITRO"
 end
 
 if chk $[FW_MO_STRING] 01
@@ -148,14 +150,9 @@ elif chk $[FW_MO_STRING] 12
 elif set FW_BUILD_MONTH "UNKNOWN"
 end
 
-if chk $[FW_FULL_STRING] 5108280205FF
-    set PREVIEW_MODE  "Build info:\n\nFlashMe: NTR/Worldwide (v8a)\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"    
-elif chk $[FW_FULL_STRING] 332105020620
-    set PREVIEW_MODE  "Build info:\n\nFlashMe: USG/Worldwide (v8a)\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
-else
-    # Display build info
-    set PREVIEW_MODE  "Build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nFlashMe: No\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
-end
+
+# Display build info
+set PREVIEW_MODE  "Build info:\n\nTime: $[FW_MM_STRING]:$[FW_HH_STRING]\nDate: 20$[FW_YY_STRING], $[FW_BUILD_MONTH] $[FW_DD_STRING]\nRegion: $[FW_REGION_STRING] - $[FW_BUILD_REGION]\nFlashMe: No\nHex: $[FW_HH_STRING] $[FW_MM_STRING] $[FW_DD_STRING] $[FW_MO_STRING] $[FW_YY_STRING] $[FW_REGION_STRING] (0x18-0x1D)"
 
 # Display build info if flashme
 
@@ -163,8 +160,6 @@ end
 if chk $[FW_FULL_STRING] 0711051004FF
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 5109261104FF
-    echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 5108280205FF
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 4814060605FF
     echo "Dump complete!\n\nThis is a known firmware revision."
@@ -176,9 +171,9 @@ elif chk $[FW_FULL_STRING] 4514071205FF
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 192026010601
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 332105020620
+elif chk $[FW_FULL_STRING] 592020020600 # ISNE Phat
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 592020020600 # ISNE
+elif chk $[FW_FULL_STRING] 5920200206A0 # ISNE Lite
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 191108030620
     echo "Dump complete!\n\nThis is a known firmware revision."
@@ -188,13 +183,24 @@ elif chk $[FW_FULL_STRING] 302109110635
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk $[FW_FULL_STRING] 000000000000
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 5108280205FF # FlashMe (phat)
+elif chk $[FW_FULL_STRING] 5108280205FF # FlashMe (Phat - v8, v8a)
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 332105020620 # FlashMe (lite)
+elif chk $[FW_FULL_STRING] 332105020620 # FlashMe (Lite - 050512, 050715, v3, v5, v6, v7, v8, v8a)
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 332105020620 # CreeboMeBeta2
+elif chk $[FW_FULL_STRING] 0CF07F023490 # CreeboMeBeta2 (v0.02)
     echo "Dump complete!\n\nThis is a known firmware revision."
-elif chk $[FW_FULL_STRING] 332105020620 # fwnitro
+elif chk $[FW_FULL_STRING] 0CF07F02D0B4 # fwnitro (v1.6b no scroller + no mkds, mkds only, scroller only)
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 0CF07F02D0BC # fwnitro (v1.6b scroller + mkds)
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 0CF07F0254AB # fwnitro (v1.6c no sroller, no mkds)
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 0CF07F0254B3 # fwnitro (v1.6c mkds only)
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 0CF07F0254B5 # fwnitro (v1.6c scroller only)
+    echo "Dump complete!\n\nThis is a known firmware revision."
+elif chk $[FW_FULL_STRING] 0CF07F0254BB # fwnitro (v1.6c scroller + mkds)
+
     echo "Dump complete!\n\nThis is a known firmware revision."
 elif chk 1 1
     echo "UNKNOWN FIRMWARE: Please send the firmware dump to:\n'lillian@randommeaninglesscharacters.com'.\n(0:/USG-FIRM-WRITER/$[MAC]_FIRMWARE.bin)"
@@ -251,6 +257,8 @@ if  ask "Proceed with flasher?\nThis will overwrite the current firmware."
         set FW_BUILD_REGION "CFW"
     elif chk $[FW_REGION_STRING] 00
         set FW_BUILD_REGION "NTR/Prototype"
+    elif chk $[FW_REGION_STRING] A0
+        set FW_BUILD_REGION "NTR/IS-NITRO"
     end
 
     if chk $[FW_MO_STRING] 01
